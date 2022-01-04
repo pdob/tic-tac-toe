@@ -1,0 +1,17 @@
+enum Players {
+  O
+  X
+}
+
+type Game @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  playerX: String!
+  playerO: String
+  board: String!
+  currentPlayer: Players
+  pointX: Int
+  pointO: Int
+  player1Name: String
+  player2Name: String
+}
+ 

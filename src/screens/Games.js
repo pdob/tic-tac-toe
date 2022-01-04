@@ -1,32 +1,24 @@
 import React, { useState, useEffect } from "react";
 import {
   Text,
-  StatusBar,
-  Dimensions,
   View,
   ImageBackground,
   Pressable,
   SafeAreaView,
-  Image
+  StyleSheet
 } from "react-native";
 import { useNavigation } from "@react-navigation/core";
-import background from '../../assets/background.jpg'
-import Header from '../components/Header'
-import { copyArray, changeDifficulty, emptyBoard } from "../utils/index";
-import { checkWinner } from '../utils/appLogic';
-import { styles } from "../utils/styles";
-import Amplify, { Auth, DataStore } from 'aws-amplify';
+import background from '../../assets/background.jpg';
+import Scoreboard from '../components/Scoreboard';
+import OptionButton from "../components/Buttons/OptionButton";
+import Cross from "../components/Cross";
+import { copyArray, emptyBoard, checkWinner } from "../utils/index";
 import { Game } from "../models";
-import config from '../aws-exports'
-Amplify.configure({
-  ...config,
-  Analytics: {
-    disabled: true
-  }
-});
-Auth.configure(config);
+import { Auth, DataStore } from 'aws-amplify';
 
-function Games({ route }) {
+
+
+const Games = ({ route }) => {
 
   const [board, setBoard] = useState([
     ['', '', ''],
@@ -34,22 +26,26 @@ function Games({ route }) {
     ['', '', '']
   ]);
 
-  const { mode, difficulty, player1Name, player2Name } = route.params;
+  const { gameMode, difficulty, player1Name, player2Name, playerType } = route.params;
   const [winner, setWinner] = useState('');
   const [scores, setScores] = useState([0, 0])
   const [currentTurn, setCurrentTurn] = useState('X');
   const [gameOver, setGameOver] = useState(false);
-  const [gameMode, setGameMode] = useState(mode);
   const [currentGame, setCurrentGame] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [onlinePlayerType, setOnlinePlayerType] = useState(null);
-
+  const [onlinePlayer1Name, setOnlinePlayer1Name] = useState('');
+  const [onlinePlayer2Name, setOnlinePlayer2Name] = useState('');
 
   const navigation = useNavigation();
 
   useEffect(() => {
-    if(mode === 'Online' && userData) {
-      searchOnlineGame();
+    if (gameMode === 'Online' && userData) {
+      if (playerType === 'X') {
+        createNewOnlineGame();
+      }
+      if (playerType === 'O') {
+        searchOnlineGame();
+      }      
     } else {
       deleteOnlineGame();
     }
@@ -59,12 +55,17 @@ function Games({ route }) {
 
   useEffect(() => {
     Auth.currentAuthenticatedUser().then(setUserData);
-  }, [])
+  }, []);
 
 
   useEffect(() => {
     updateGame();
-  }, [currentTurn])
+  }, [currentTurn]);
+
+
+  useEffect(() => {
+    updateNames();
+  }, [currentGame?.playerO]);
 
   useEffect(() => {
 
@@ -82,34 +83,33 @@ function Games({ route }) {
       }
       checkDraw();
     }
-  }, [board])
+  }, [board]);
 
   useEffect(() => {
     if (!currentGame) {
       return;
     }
-    const subscription = DataStore.observe(Game, currentGame.id).subscribe(msg => {
-      console.log(msg.model, msg.opType, msg.element);
-      const newGame = msg.element;
-      if(msg.opType === 'UPDATE') {
+    const subscription = DataStore.observe(Game, currentGame.id).subscribe(game => {
+
+      const newGame = game.element;
+      if (game.opType === 'UPDATE') {
         setCurrentGame(newGame);
-        if(newGame.board){
+        if (newGame.board){
           setBoard(JSON.parse(newGame.board));
         }
-        if(newGame.currentPlayer) {
-          setCurrentTurn(msg.element.currentPlayer);
+        if (newGame.currentPlayer) {
+          setCurrentTurn(game.element.currentPlayer);
         }
       }
     });
-
     return () => {
       subscription.unsubscribe();
     }
-  }, [currentGame])
+  }, [currentGame]);
 
 
   const onPress = (rowIndex, cellIndex) => {
-    if(currentGame?.currentPlayer !== onlinePlayerType && gameMode === 'Online') {
+    if(currentGame?.currentPlayer !== playerType && gameMode === 'Online') {
       return;
     }
     if (board[rowIndex][cellIndex] !== '' || gameOver) {
@@ -210,13 +210,6 @@ function Games({ route }) {
           return newScores;
         })
         break;
-      case 'Draw':
-        setScores((prevScores) => {
-          const newScores = [...prevScores];
-          newScores[2]++;
-          return newScores;
-        })
-        break;
     }
   }
 
@@ -231,8 +224,15 @@ function Games({ route }) {
       DataStore.save(Game.copyOf(currentGame, c => {
         c.currentPlayer = currentTurn;
         c.board = JSON.stringify(board);
+        if(playerType === 'X') {
+          c.player1Name = userData.username;
+        }
+        if(playerType === 'O') {
+          c.player2Name = userData.username;
+        }
       }))
     }
+
   }
 
   const deleteOnlineGame = async () => {
@@ -252,17 +252,14 @@ function Games({ route }) {
       joinGame(games[Math.floor(Math.random() * games.length)])
       return;
     } 
-    await createNewOnlineGame();
-    
   }
 
   const joinGame = async (game) => {
     const updatedGame = await DataStore.save(
       Game.copyOf(game, (updatedGame) => {
-      updatedGame.playerO = userData.attributes.sub;
+      updatedGame.playerO = userData.username;
     }))
     setCurrentGame(updatedGame);
-    setOnlinePlayerType('O');
   }
 
   const getAvailableOnlineGames = async () => {
@@ -275,48 +272,44 @@ function Games({ route }) {
     const newBoard = JSON.stringify(emptyBoard);
 
     const newGame = new Game({
-      playerX: userData.attributes.sub,
+      playerX: userData.username,
       playerO: '',
       board: newBoard,
-      currentPlayer: currentTurn.toUpperCase(),
-      pointO: 0,
-      pointX: 0
+      currentPlayer: currentTurn.toUpperCase()
     })
 
     const createdGame = await DataStore.save(newGame);
     setCurrentGame(createdGame);
-    setOnlinePlayerType('X');
   }
 
-  const GameButton = ({ title, onPress }) => (
-    <Pressable style={styles.newGameButton} onPress={() => onPress()}>
-      <Text style={styles.buttonText}>{title}</Text>
-    </Pressable>
-  )
+  console.log(`1: ${onlinePlayer1Name}`);
+  console.log(`2: ${onlinePlayer2Name}`);
 
-  const Cross = () => (
-    <View style={{justifyContent: 'center', alignItems: 'center'}}>
-      <Image 
-        style={{height: 65, width: 65}}
-        source={require('../../assets/icons/cross.png')}
-      />
-    </View>
-  )
+  const updateNames = () => {
+    if (currentGame && !onlinePlayer1Name) {
+      setOnlinePlayer1Name(currentGame.playerX);
+    }
+    if (currentGame && !onlinePlayer2Name) {
+      setOnlinePlayer2Name(currentGame.playerO);
+    }
+  }
+
+  
 
   return (
 
     <SafeAreaView style={styles.container}>
       <ImageBackground source={background} style={styles.background} resizeMode='cover'>
         <View style={styles.buttonContainer}>
-          <GameButton 
+          <OptionButton 
             title='Back'
             onPress={() => navigation.goBack()}
           />
-          <GameButton 
+          <OptionButton 
             title='New game'
             onPress={resetGame}
           />
-          <GameButton 
+          <OptionButton 
             title='Reset scores'
             onPress={resetScores}
           />
@@ -330,6 +323,7 @@ function Games({ route }) {
               </Text> 
             )}   
           </Text>
+          {!onlinePlayer2Name && currentGame && <Text style={styles.waitingMessage}>Waiting for Player 2 to join.. </Text>}
         </View>
         <View style={styles.board}>
           {board.map((row, rowIndex) => (
@@ -344,19 +338,86 @@ function Games({ route }) {
           ))}
         </View>
         <View style={styles.scoreContainer}>
-          <Header
+          <Scoreboard
             scores={scores}
             winner={winner}
             currentTurn={currentTurn}
-            player1Name={player1Name}
-            player2Name={player2Name}
+            player1Name={onlinePlayer1Name ? onlinePlayer1Name : player1Name}
+            player2Name={onlinePlayer2Name ? onlinePlayer2Name : player2Name}
           />
         </View>
-        {currentGame && <Text style={{fontSize: 20}}>{currentGame.id}</Text>}  
+        {currentGame && <Text style={{fontSize: 10}}>{currentGame.id}</Text>}  
       </ImageBackground>
     </SafeAreaView>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  background: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  board: {
+    width: '85%',
+    aspectRatio: 1,
+    position: 'absolute',
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 'auto',
+  },
+  buttonContainer: {
+    width: '90%',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    top: 5
+  },
+  cell: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 35
+  },
+  circle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    borderRadius: 100,
+    borderWidth: 8,
+    borderColor: 'green',
+  },
+  circleContainer: {
+    height: 65,
+    width: 65,
+    justifyContent: 'center',
+  },
+  row: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  waitingMessage: {
+    fontSize: 30,
+    color: 'white',
+    fontStyle: 'italic',
+    padding: 10
+  },
+  winnerMessage: {
+    paddingTop: 20
+  },
+  winnerMessageText: {
+    fontSize: 45, 
+    fontStyle: 'italic',
+    fontWeight: 'bold'
+  },  
+});
 
 export default Games;

@@ -1,33 +1,39 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Animated,
+  Alert,
+  SafeAreaView,
   View,
   Text,
-  Image,
-  Pressable,
-  TextInput,
   StyleSheet,
-  KeyboardAvoidingView
 } from 'react-native';
-import Welcome from '../../components/Welcome';
-import { useNavigation } from '@react-navigation/core';
 import { LinearGradient } from 'expo-linear-gradient';
+import SignInUpButton from '../../components/Buttons/SignInUpButton';
+import AuthTextInput from '../../components/TextInput/AuthTextInput';
+import AuthRedirectButton from '../../components/Buttons/AuthRedirectButton';
+import { Auth } from 'aws-amplify';
+import { icons } from '../../config/icons';
 
 
-const ResetPassword = () => {
+const ResetPassword = ({ navigation }) => {
 
-  const navigation = useNavigation();
-  const authOptions = ['Forgot Password', 'Sign Up'];
+  const [username, setUsername] = useState('');
 
+  const resetPassword = async () => {
 
-  const SignInButton = () => (
-    <Pressable style={styles.button}>
-      <Text style={styles.text}>Reset password</Text>
-    </Pressable>
-  )
+    try {
+      await Auth.forgotPassword(username);
+      navigation.navigate('ConfirmResetPassword', {
+        username
+      });
+    } catch (error) {
+      const err = String(error);
+      const msg = err.slice(err.indexOf(' '), err.length);
+      Alert.alert(`${msg}`);
+    }
+  }
 
   return (
-    <View style={styles.background}>
+    <SafeAreaView style={styles.background}>
       <LinearGradient
         colors={['#29434e', 'grey']}
         style={styles.background}
@@ -35,37 +41,36 @@ const ResetPassword = () => {
         <View style={styles.header}>
           <Text style={styles.headerText}>Reset your password</Text>
         </View>
-        <View style={styles.signUp}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.text}>Username *</Text>
-            <TextInput 
-              style={styles.textInput}
-              placeholder='Enter username'
-            />
-            <Image
-              style={styles.icon}
-              source={require('../../../assets/icons/user-icon.png')}   
-            />
-          </View>
+        <View style={styles.resetPassword}>
+          <AuthTextInput 
+            title='Username *'
+            placeholder='Enter username'
+            icon={icons.userIcon}
+            value={username}
+            onChangeText={text => setUsername(text)}
+          />
       
 
-          <SignInButton />
+          <SignInUpButton 
+            title='Reset password'
+            onPress={resetPassword}
+          />
 
           <View style={styles.textButtonContainer}>
-            <Pressable style={{padding: 10}}>
-              <Text style={styles.text}>Back to Sign In</Text>
-            </Pressable>
+            <AuthRedirectButton 
+              title='Back to sign in'
+              onPress={() => navigation.navigate('SignIn')}
+            />
           </View>
         </View>
       </LinearGradient>
-    </View>
+    </SafeAreaView>
   );
 }
 
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: 'black',
     flex: 1
   },
   header: {
@@ -78,52 +83,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white'
   },  
-  signUp: {
+  resetPassword: {
     alignItems: 'center',
     flex: 1,
     top: 30
-  },
-  button: {
-    width: '90%',
-    backgroundColor: '#1c313a',
-    padding: 15,
-    borderRadius: 15,
-    alignItems: 'center',
-    borderColor: 'white',
-    borderWidth: 0.5,
-    bottom: 10
-  },
-  icon: {
-    width: 25,
-    height: 25, 
-    bottom: 39,
-    left: 5
-  },
-  inputContainer: {
-    width: '90%',
-  }, 
-  textInput: {
-    backgroundColor: 'white',
-    width: '100%',
-    height: 50,
-    borderRadius: 10,
-    borderColor: 'grey',
-    borderWidth: 0.6,
-    paddingLeft: 35,
-  },
-  text: {
-    color: 'white',
-    fontWeight: 'bold'
   },
   textButtonContainer: {
     justifyContent: 'center',
     width: '90%',
     alignItems: 'center'
   },
-  bottomButton: {
-    padding: 30,
-    alignItems: 'center'
-  }
 })
 
 export default ResetPassword;

@@ -3,28 +3,24 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from '../screens/Home';
 import Games from '../screens/Games';
 import Settings from '../screens/Settings';
-import SignIn from '../screens/Authentication/SignIn';
-import SignUp from '../screens/Authentication/SignUp';
-import ConfirmSignUp from '../screens/Authentication/ConfirmSignUp';
-import ResetPassword from '../screens/Authentication/ResetPassword';
-import ConfirmResetPassword from '../screens/Authentication/ConfirmResetPassword';
 import Pregame from '../screens/Pregame';
-
+import PreOnlineGame from '../screens/PreOnlineGame';
+import AuthStackNavigation from './AuthStackNavigation';
 
 const Stack = createNativeStackNavigator();
 
-const StackNavigation = () => {
+const StackNavigation = ({ isUserLoggedIn }) => {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name='Home' component={Home} options={{headerShown: false}}/>
-      <Stack.Screen name='Games' component={Games} options={{headerShown: false}}/>
-      <Stack.Screen name='Settings' component={Settings} options={{headerShown: false}}/>
-      <Stack.Screen name='SignIn' component={SignIn} options={{headerShown: false}}/>
-      <Stack.Screen name='SignUp' component={SignUp} options={{headerShown: false}}/>
-      <Stack.Screen name='ConfirmSignUp' component={ConfirmSignUp} options={{headerShown: false}}/>
-      <Stack.Screen name='ResetPassword' component={ResetPassword} options={{headerShown: false}}/>
-      <Stack.Screen name='ConfirmResetPassword' component={ConfirmResetPassword} options={{headerShown: false}}/>
-      <Stack.Screen name='Pregame' component={Pregame} options={{headerShown: false}}/>
+    <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName={
+      isUserLoggedIn === 'loggedIn' ? 'Home' : 'Root'
+      }
+    >
+      <Stack.Screen name='Root' component={AuthStackNavigation} />
+      <Stack.Screen name='Home' component={Home} />
+      <Stack.Screen name='Games' component={Games} />
+      <Stack.Screen name='Settings' component={Settings} />
+      <Stack.Screen name='Pregame' component={Pregame} />
+      <Stack.Screen name='PreOnlineGame' component={PreOnlineGame} />
     </Stack.Navigator>
   );
 }

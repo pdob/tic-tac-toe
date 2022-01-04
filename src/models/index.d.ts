@@ -19,7 +19,8 @@ export declare class Game {
   readonly currentPlayer?: Players | keyof typeof Players;
   readonly pointX?: number;
   readonly pointO?: number;
-  readonly draw?: number;
+  readonly player1Name?: string;
+  readonly player2Name?: string;
   readonly createdAt?: string;
   readonly updatedAt?: string;
   constructor(init: ModelInit<Game, GameMetaData>);

@@ -6,15 +6,15 @@ import {
 } from 'react-native';
 
 
-const Header = ({ scores, player1Name = 'Player 1', player2Name = 'Player 2', currentTurn }) => (
+const Scoreboard = ({ scores, player1Name = 'Player 1', player2Name = 'Player 2', currentTurn }) => (
   <View style={styles.header}>
     <View style={styles.playerScore}>
-      <Text style={[styles.crossText, {fontSize: currentTurn === 'X' ? 60 : 40}]}>X</Text>
+      <Text style={[styles.crossText, {fontSize: currentTurn === 'X' ? 70 : 40}]}>X</Text>
       <Text style={styles.headerText}>{player1Name}:</Text>
       <Text style={styles.scoreText}>{scores[0]}</Text>
     </View>
     <View style={styles.playerScore}>
-      <Text style={[styles.circleText, {fontSize: currentTurn === 'O' ? 60 : 40}]}>O</Text>
+      <Text style={[styles.circleText, {fontSize: currentTurn === 'O' ? 70 : 40}]}>O</Text>
       <Text style={styles.headerText}>{player2Name}:</Text>
       <Text style={styles.scoreText}>{scores[1]}</Text>
     </View>
@@ -61,4 +61,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Header;
+export default Scoreboard;

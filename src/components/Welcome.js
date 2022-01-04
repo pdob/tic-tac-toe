@@ -2,29 +2,24 @@ import React, { useRef, useEffect } from 'react';
 import {
   Animated,
   View,
-  Text,
   Image,
-  Pressable,
   StyleSheet
 } from 'react-native';
-import { useNavigation } from '@react-navigation/core';
-import { LinearGradient } from 'expo-linear-gradient';
+
 
 
 const Welcome = () => {
-
-  const navigation = useNavigation();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     fadeIn();
-  }, [])
+  }, []);
+
   const fadeIn = () => {
-    // Will change fadeAnim value to 1 in 5 seconds
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 5000,
+      duration: 3500,
       useNativeDriver: true
     }).start();
   };

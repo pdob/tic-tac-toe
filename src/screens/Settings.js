@@ -1,32 +1,45 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Animated,
+  ActivityIndicator,
   View,
-  Dimensions,
   Text,
-  Image,
-  Pressable,
-  TextInput,
-  StyleSheet,
-  KeyboardAvoidingView
+  StyleSheet
 } from 'react-native';
 import Welcome from '../components/Welcome';
 import MenuButton from '../components/Buttons/MenuButton';
-import { useNavigation } from '@react-navigation/core';
+import BackButton from '../components/Buttons/BackButton';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const SIZE = Dimensions.get('window');
-
-
-const Settings = ({ route }) => {
-
-  const navigation = useNavigation();
-  const difficulties = ['Easy', 'Medium', 'Hard'];
-  const gameMode = route.params.gameMode;
-  const [difficulty, setDifficulty] = useState('Easy');
+import { Auth } from 'aws-amplify';
 
 
 
+
+const Settings = ({ navigation }) => {
+
+  const [username, setUsername] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getUsername();
+  }, [username])
+
+  const getUsername = async() => {
+    const user = await Auth.currentUserInfo();
+    if (user) {
+      setUsername(user.username);
+    }
+    setLoading(false);
+  }
+
+  const signOut = () => {
+    Auth.signOut();
+    navigation.navigate('Root');
+  }
+
+  const signIn = () => {
+    navigation.navigate('Root');
+  }
+  
 
   return (
     <View style={styles.background}>
@@ -35,34 +48,15 @@ const Settings = ({ route }) => {
         style={styles.background}
       >
         <Welcome />
-        <View style={styles.subHeading}>
-          <Text style={styles.headerText}>{gameMode}</Text>
-        </View>
-        <View style={styles.buttonContainer}>
-          <MenuButton 
-            title='Create new game'
-          />
-          <MenuButton 
-            title='Join random game'
-          />
-        </View>
-     
-        <View style={styles.startBackContainer}>
-          <Pressable 
-            style={styles.startBackButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.text}>Back</Text>
-          </Pressable>
-          <Pressable 
-            style={styles.startBackButton}
-            onPress={() => navigation.navigate('Games', {
-              difficulty
-            })}
-          >
-            <Text style={styles.text}>Start Game</Text>
-          </Pressable>
-        </View>
+
+        {loading ? <ActivityIndicator size='large' color='grey'/> : (
+          <View style={styles.container} >
+            {username && <Text style={styles.greeting}>Hello, {username}!</Text>}
+            {!username && <MenuButton title='Sign in' onPress={signIn} /> }
+            {username && <MenuButton title='Sign out' onPress={signOut} />}
+          </View>
+        )}
+        <BackButton />
       </LinearGradient>
     </View>
   );
@@ -71,83 +65,16 @@ const Settings = ({ route }) => {
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: 'black',
     flex: 1
   },
-  startBackContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    marginTop: 'auto'
-  },
-  startBackButton: {
-    padding: 20
-  },
-  subHeading: {
-    alignItems: 'center',
-    paddingBottom: 10
-  },
-  header: {
-    padding: 5,
-    justifyContent: 'center',
+  container: {
     alignItems: 'center'
   },
-  headerText: {
+  greeting: {
+    paddingBottom: 50,
     fontSize: 30,
-    fontWeight: 'bold',
+    fontStyle: 'italic',
     color: 'white'
-  },  
-  signUp: {
-    alignItems: 'center',
-    flex: 1,
-    top: 30
-  },
-  crossText: {
-    color: 'blue',
-    fontSize: 30,
-    paddingLeft: 10,
-    fontWeight: 'bold'
-  },
-  circleText: {
-    color: 'green',
-    fontSize: 30,
-    paddingLeft: 10,
-    fontWeight: 'bold'
-  },
-  buttonContainer: {
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    height: '30%'
-
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingBottom: 10
-  }, 
-  textInput: {
-    backgroundColor: 'white',
-    width: 200,
-    height: 50,
-    borderRadius: 10,
-    borderColor: 'grey',
-    borderWidth: 0.6,
-    paddingLeft: 10,
-  },
-  text: {
-    fontSize: 17,
-    color: 'white',
-    fontWeight: 'bold'
-  },
-  textButtonContainer: {
-    justifyContent: 'center',
-    width: '90%',
-    alignItems: 'center'
-  },
-  bottomButton: {
-    padding: 30,
-    alignItems: 'center'
   }
 })
 

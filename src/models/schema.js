@@ -54,10 +54,17 @@ export const schema = {
                     "isRequired": false,
                     "attributes": []
                 },
-                "draw": {
-                    "name": "draw",
+                "player1Name": {
+                    "name": "player1Name",
                     "isArray": false,
-                    "type": "Int",
+                    "type": "String",
+                    "isRequired": false,
+                    "attributes": []
+                },
+                "player2Name": {
+                    "name": "player2Name",
+                    "isArray": false,
+                    "type": "String",
                     "isRequired": false,
                     "attributes": []
                 },
@@ -114,5 +121,5 @@ export const schema = {
         }
     },
     "nonModels": {},
-    "version": "699445ef63a3dde06b42ea6da8d9f9e8"
+    "version": "a262b7eb3b1702a91012dfa4f06bbbfc"
 };

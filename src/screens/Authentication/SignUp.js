@@ -1,33 +1,53 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Animated,
+  SafeAreaView,
   View,
   Text,
-  Image,
-  Pressable,
-  TextInput,
   StyleSheet,
-  KeyboardAvoidingView
+  Alert
 } from 'react-native';
-import Welcome from '../../components/Welcome';
-import { useNavigation } from '@react-navigation/core';
 import { LinearGradient } from 'expo-linear-gradient';
+import { icons } from '../../config/icons';
+import SignInUpButton from '../../components/Buttons/SignInUpButton';
+import AuthTextInput from '../../components/TextInput/AuthTextInput';
+import AuthRedirectButton from '../../components/Buttons/AuthRedirectButton';
+import { Auth } from 'aws-amplify';
 
 
-const SignUp = () => {
+const SignUp = ({ navigation }) => {
 
-  const navigation = useNavigation();
-  const authOptions = ['Forgot Password', 'Sign Up'];
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
 
+  const signUp = async () => {
 
-  const SignInButton = () => (
-    <Pressable style={styles.button}>
-      <Text style={styles.text}>Sign Up</Text>
-    </Pressable>
-  )
+    if (email) {
+      try {
+          const { user } = await Auth.signUp ({
+              username,
+              password,
+              attributes: {
+                  email,        
+              }
+          });
+          navigation.navigate('ConfirmSignUp', {
+            username
+          })
+      } catch (error) {
+          const err = String(error);
+          const msg = err.slice(err.indexOf(' '), err.length);
+          Alert.alert(`${msg}`);
+        }   
+    }
+    if (!email) {
+      Alert.alert('Please fill in the required information.')
+    }
+  }
+
 
   return (
-    <View style={styles.background}>
+    <SafeAreaView style={styles.background}>
       <LinearGradient
         colors={['#29434e', 'grey']}
         style={styles.background}
@@ -36,74 +56,51 @@ const SignUp = () => {
           <Text style={styles.headerText}>Create a new account</Text>
         </View>
         <View style={styles.signUp}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.text}>Username *</Text>
-            <TextInput 
-              style={styles.textInput}
-              placeholder='Enter username'
-            />
-            <Image
-              style={styles.icon}
-              source={require('../../../assets/icons/user-icon.png')}   
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.text}>Password *</Text>
-            <TextInput 
-              style={styles.textInput}
-              placeholder='Enter password'
-              secureTextEntry={true}
-            />
-            <Image
-              style={styles.icon}
-              source={require('../../../assets/icons/password-icon.png')}   
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.text}>E-mail *</Text>
-            <TextInput 
-              style={styles.textInput}
-              placeholder='Enter e-mail'
-              secureTextEntry={true}
-            />
-            <Image
-              style={styles.icon}
-              source={require('../../../assets/icons/email-icon.png')}   
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.text}>Phone number *</Text>
-            <TextInput 
-              style={styles.textInput}
-              placeholder='Enter phone number'
-              secureTextEntry={true}
-            />
-            <Image
-              style={styles.icon}
-              source={require('../../../assets/icons/phone-icon.png')}   
-            />
-          </View>
+          <AuthTextInput 
+            title='Username *'
+            placeholder='Enter username'
+            icon={icons.userIcon}
+            value={username}
+            onChangeText={text => setUsername(text)}
+          />
+          <AuthTextInput 
+            title='Password *'
+            placeholder='Enter password'
+            icon={icons.passwordIcon}
+            secureTextEntry={true}
+            value={password}
+            onChangeText={text => setPassword(text)}
+          />
+          <AuthTextInput 
+            title='E-mail *'
+            placeholder='Enter e-mail'
+            icon={icons.emailIcon}
+            value={email}
+            onChangeText={text => setEmail(text)}
+            textInputType='email'
+          />
 
-          <SignInButton />
+          <SignInUpButton title='Sign Up' onPress={signUp}/>
 
           <View style={styles.textButtonContainer}>
-            <Pressable style={{padding: 10}}>
-              <Text style={styles.text}>Confirm code</Text>
-            </Pressable>
-            <Pressable style={{padding: 10}}>
-              <Text style={styles.text}>Sign in</Text>
-            </Pressable>
+            <AuthRedirectButton 
+              title='Confirm code'
+              onPress={() => navigation.navigate('ConfirmSignUp')}
+            />
+            <AuthRedirectButton 
+              title='Sign in'
+              onPress={() => navigation.navigate('SignIn')}
+            />
           </View>
         </View>
       </LinearGradient>
-    </View>
+    </SafeAreaView>
   );
 }
 
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: 'black',
     flex: 1
   },
   header: {
@@ -121,46 +118,10 @@ const styles = StyleSheet.create({
     flex: 1,
     top: 30
   },
-  button: {
-    width: '90%',
-    backgroundColor: '#1c313a',
-    padding: 15,
-    borderRadius: 15,
-    alignItems: 'center',
-    borderColor: 'white',
-    borderWidth: 0.5,
-    bottom: 10
-  },
-  icon: {
-    width: 25,
-    height: 25, 
-    bottom: 39,
-    left: 5
-  },
-  inputContainer: {
-    width: '90%',
-  }, 
-  textInput: {
-    backgroundColor: 'white',
-    width: '100%',
-    height: 50,
-    borderRadius: 10,
-    borderColor: 'grey',
-    borderWidth: 0.6,
-    paddingLeft: 35,
-  },
-  text: {
-    color: 'white',
-    fontWeight: 'bold'
-  },
   textButtonContainer: {
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     width: '90%'
-  },
-  bottomButton: {
-    padding: 30,
-    alignItems: 'center'
   }
 })
 

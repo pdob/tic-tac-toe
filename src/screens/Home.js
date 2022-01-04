@@ -6,22 +6,20 @@ import {
   Pressable,
   StyleSheet
 } from 'react-native';
-import { useNavigation } from '@react-navigation/core';
 import Welcome from '../components/Welcome'
 import { LinearGradient } from 'expo-linear-gradient';
 
-const Home = () => {
+const Home = ({ navigation }) => {
 
-  const navigation = useNavigation();
 
-  const MenuButton = ({ destination, gameMode }) => (
+  const MenuButton = ({ destination, title }) => (
     <Pressable 
       onPress={() => navigation.navigate(destination, {
-        gameMode
+        gameMode: title
       })} 
       style={styles.button}
     >
-      <Text style={styles.buttonText}>{gameMode}</Text>
+      <Text style={styles.buttonText}>{title}</Text>
     </Pressable>
   )
 
@@ -33,10 +31,10 @@ const Home = () => {
       >
         <Welcome />
         <View style={styles.buttonContainer}>
-          <MenuButton gameMode='Computer' destination='Pregame'/>
-          <MenuButton gameMode='Multiplayer' destination='Pregame'/>
-          <MenuButton gameMode='Online' destination='Games'/>
-          <MenuButton destination='Settings' gameMode='Settings' />
+          <MenuButton title='Computer' destination='Pregame'/>
+          <MenuButton title='Multiplayer' destination='Pregame'/>
+          <MenuButton title='Online' destination='PreOnlineGame'/>
+          <MenuButton title='Settings' destination='Settings'/>
         </View>
       </LinearGradient>
     </SafeAreaView>
@@ -68,9 +66,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white'
   },
-  welcomeContainer: {
-    height: '30%',    
-  }
 });
 
 export default Home;
