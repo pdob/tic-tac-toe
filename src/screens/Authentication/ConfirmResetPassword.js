@@ -1,22 +1,13 @@
-import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  Alert,
-  View,
-  Text,
-  StyleSheet,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { icons } from '../../config/icons';
+import React, {useState} from 'react';
+import {SafeAreaView, Alert, View, Text, StyleSheet} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
+import {icons} from '../../config/icons';
 import SignInUpButton from '../../components/Buttons/SignInUpButton';
 import AuthTextInput from '../../components/TextInput/AuthTextInput';
 import AuthRedirectButton from '../../components/Buttons/AuthRedirectButton';
-import { Auth } from 'aws-amplify';
+import {Auth} from 'aws-amplify';
 
-
-
-const ConfirmResetPassword = ({ route, navigation }) => {
-
+const ConfirmResetPassword = ({route, navigation}) => {
   const username = route.params.username;
   const [password, setPassword] = useState('');
   const [authCode, setAuthCode] = useState('');
@@ -25,44 +16,39 @@ const ConfirmResetPassword = ({ route, navigation }) => {
     try {
       await Auth.forgotPasswordSubmit(username, authCode, password);
       navigation.navigate('SignIn', {
-        username
+        username,
       });
     } catch (error) {
       const err = String(error);
       const msg = err.slice(err.indexOf(' '), err.length);
       Alert.alert(`${msg}`);
-    } 
-  }
-
+    }
+  };
 
   return (
     <SafeAreaView style={styles.background}>
-      <LinearGradient
-        colors={['#29434e', 'grey']}
-        style={styles.background}
-      >
+      <LinearGradient colors={['#29434e', 'grey']} style={styles.background}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Reset your password</Text>
         </View>
         <View style={styles.confirmResetPassword}>
-          <AuthTextInput 
-            placeholder='Enter confirmation code'
+          <AuthTextInput
+            placeholder="Enter confirmation code"
             icon={icons.passwordIcon}
             value={authCode}
             onChangeText={text => setAuthCode(text)}
           />
-          <AuthTextInput 
-            placeholder='Enter new password'
+          <AuthTextInput
+            placeholder="Enter new password"
             icon={icons.passwordIcon}
             secureTextEntry={true}
-            textContentType='password'
+            textContentType="password"
             value={password}
             onChangeText={text => setPassword(text)}
           />
-      
 
-          <SignInUpButton 
-            title='Reset password'
+          <SignInUpButton
+            title="Reset password"
             onPress={confirmResetPassword}
           />
 
@@ -73,12 +59,11 @@ const ConfirmResetPassword = ({ route, navigation }) => {
       </LinearGradient>
     </SafeAreaView>
   );
-}
-
+};
 
 const styles = StyleSheet.create({
   background: {
-    flex: 1
+    flex: 1,
   },
   header: {
     padding: 5,
@@ -88,21 +73,21 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: 'white'
-  },  
+    color: 'white',
+  },
   confirmResetPassword: {
     alignItems: 'center',
     flex: 1,
-    top: 30
+    top: 30,
   },
   text: {
     color: 'white',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   textButtonContainer: {
     alignItems: 'center',
-    width: '90%'
+    width: '90%',
   },
-})
+});
 
 export default ConfirmResetPassword;

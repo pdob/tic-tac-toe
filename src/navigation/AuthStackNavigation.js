@@ -6,8 +6,6 @@ import ConfirmSignUp from '../screens/Authentication/ConfirmSignUp';
 import ResetPassword from '../screens/Authentication/ResetPassword';
 import ConfirmResetPassword from '../screens/Authentication/ConfirmResetPassword';
 
-
-
 const AuthStack = createNativeStackNavigator();
 
 const AuthStackNavigation = () => {
