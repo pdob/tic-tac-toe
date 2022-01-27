@@ -9,7 +9,7 @@ In this application I implemented custom authentication with AWS Amplify and AWS
 
 ### Installing
 
-* The application is currently pending Play Store upload, so in the meantime the .apk file can be found [here](https://drive.google.com/file/d/1aNhPZ-5Xz5NYTmBb_VAnLH8SBW0Wntb2/view?usp=sharing)
+* The application can be found in the Google Play Store [here](https://play.google.com/store/apps/details?id=com.pdob.tictactoe)
 
 ## Preview
 
